@@ -2,22 +2,24 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\TypeActivity;
+use App\Models\Activity;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Validator;
 
-class TypeActivityController extends Controller
+class ActivityController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     private $rules = [
-        'description' => 'required|string|max:50|min:3',
-        
+        'description' => 'required|string|max:100|min:3',
+        'hours' => 'required|numeric|max:9999999999|min:1',
+        'technician_id' => 'required|numeric|max:99999999999999999999',
+        'type_id' => 'required|numeric|max:99999999999999999999',
     ];
     private $traductionAttributes = [
         'description' => 'descripcion',
+        'hours' => 'horas',
+        'technician_id' => 'técnico',
+        'type_id' => 'tipo',
     ];
 
     public function applyvalidator(Request $request)
@@ -35,11 +37,14 @@ class TypeActivityController extends Controller
 
         return $data;
     }
-
+    /**
+     * Display a listing of the resource.
+     */
     public function index()
     {
-        $type_activities = TypeActivity::all();
-        return response()->json($type_activities, Response::HTTP_OK);
+        $activities = Activity::all();
+        $activities->load(['technician','type_activity']); //Si es una se mete solo entre parentesis si son dos o mas se pone con []
+        return response()->json($activities, Response::HTTP_OK);
     }
 
     /**
@@ -53,10 +58,10 @@ class TypeActivityController extends Controller
             return $data;
         }
 
-        $type_activity = TypeActivity::create($request->all());
+        $activity = Activity::create($request->all());
         $response = [
             'message' => 'Registro creado exitosamente',
-            'type_activity' => $type_activity
+            'activity' => $activity
         ];
 
         return response()->json($response, Response::HTTP_CREATED);
@@ -65,15 +70,17 @@ class TypeActivityController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(TypeActivity $type_activity)
+    public function show(Activity $activity)
     {
-        return response()->json($type_activity, Response::HTTP_OK);
+        $activity->load(['technician','type_activity']);
+        return response()->json($activity, Response::HTTP_OK);
     }
+
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, TypeActivity $type_activity)
+    public function update(Request $request, Activity $activity)
     {
         $data = $this->applyvalidator($request);
         if (!empty($data))
@@ -81,10 +88,10 @@ class TypeActivityController extends Controller
             return $data;
         }
 
-        $type_activity -> update($request ->all(''));
+        $activity -> update($request ->all(''));
         $response = [
             'message' => 'Registro actualizado exitosamente',
-            'type_activity' => $type_activity
+            'activity' => $activity
         ];
 
         return response()->json($response, Response::HTTP_OK);
@@ -93,12 +100,12 @@ class TypeActivityController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(TypeActivity $type_activity)
+    public function destroy(Activity $activity)
     {
-        $type_activity -> delete();
+        $activity -> delete();
         $response = [
             'message' => 'Registro eliminado exitosamente',
-            'type_activity' => $type_activity->id
+            'activity' => $activity->id
         ];
 
         return response()->json($response, Response::HTTP_OK);
